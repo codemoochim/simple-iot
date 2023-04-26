@@ -2,10 +2,11 @@ import dotenv from "dotenv";
 import express from "express";
 import MqttClient from "./mqtt/mqtt-client.js";
 import DB from "./db/db.js";
+import api from "./routes.js";
 
 dotenv.config();
 const app = express();
-const PORT = 3000;
+const PORT = 8080;
 const TOPIC_TYPE_INDEX = 0;
 const db = new DB({
   host: process.env.HOST,
@@ -49,6 +50,13 @@ mqttClient.setMessageCallback(async (topic, message) => {
   } catch (error) {
     console.log(error);
   }
+});
+
+api.init(db, mqttClient);
+app.use(express.json());
+app.use("/api", api.getRouter());
+app.get("*", (req, res) => {
+  res.send("모든 요청에 대해");
 });
 
 app.listen(PORT, () => {
